@@ -6,6 +6,8 @@
 
 namespace text_utils {
 
+std::string abbreviate_snake_case(const std::string &input);
+
 bool is_integer(const std::string &str);
 
 bool is_rational(const std::string &str);

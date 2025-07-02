@@ -1,7 +1,24 @@
 #include "text_utils.hpp"
 #include <regex>
 
+#include <string>
+#include <sstream>
+
 namespace text_utils {
+
+std::string abbreviate_snake_case(const std::string &input) {
+    std::stringstream abbrev;
+    std::stringstream word_stream(input);
+    std::string word;
+
+    while (std::getline(word_stream, word, '_')) {
+        if (word.empty())
+            continue;
+        abbrev << word[0];
+    }
+
+    return abbrev.str();
+}
 
 bool is_integer(const std::string &str) {
     // create a stringstream from the input string
