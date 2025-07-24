@@ -60,4 +60,14 @@ std::string add_newlines_to_long_string(const std::string &text, size_t max_char
     return formatted.str();
 }
 
+std::string join(const std::vector<std::string> &elements, const std::string &separator) {
+    std::ostringstream os;
+    for (size_t i = 0; i < elements.size(); ++i) {
+        if (i > 0)
+            os << separator;
+        os << elements[i];
+    }
+    return os.str();
+}
+
 } // namespace text_utils
