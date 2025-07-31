@@ -94,6 +94,10 @@ std::string add_newlines_to_long_string(const std::string &text, size_t max_char
 std::string join(const std::vector<std::string> &elements, const std::string &separator);
 std::string trim(const std::string &s);
 
+std::string camel_to_snake_case(const std::string &input);
+
+std::string join_multiline(const std::string &input, bool replace_newlines_with_space = false);
+
 } // namespace text_utils
 
 #endif // TEXT_UTILS_HPP

@@ -79,4 +79,55 @@ std::string trim(const std::string &s) {
     return s.substr(first, last - first + 1);
 }
 
+std::string camel_to_snake_case(const std::string &input) {
+    std::string result;
+
+    for (size_t i = 0; i < input.size(); ++i) {
+        char c = input[i];
+
+        if (std::isupper(c)) {
+            if (i != 0) {
+                result += '_';
+            }
+            result += std::tolower(c);
+        } else {
+            result += c;
+        }
+    }
+
+    return result;
+}
+
+std::string join_multiline(const std::string &input, bool replace_newlines_with_space) {
+    std::string result;
+    std::string buffer;
+
+    for (char c : input) {
+        if (c == '\n' || c == '\r') {
+            // Trim trailing whitespace from buffer
+            while (!buffer.empty() && std::isspace(buffer.back()))
+                buffer.pop_back();
+
+            result += buffer;
+            buffer.clear();
+
+            if (replace_newlines_with_space && !result.empty() && result.back() != ' ')
+                result += ' ';
+        } else {
+            // Skip leading whitespace at start of a new line
+            if (buffer.empty() && std::isspace(c))
+                continue;
+
+            buffer += c;
+        }
+    }
+
+    // Handle remaining buffer
+    while (!buffer.empty() && std::isspace(buffer.back()))
+        buffer.pop_back();
+    result += buffer;
+
+    return result;
+}
+
 } // namespace text_utils
