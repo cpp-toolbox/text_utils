@@ -98,6 +98,10 @@ std::string camel_to_snake_case(const std::string &input);
 
 std::string join_multiline(const std::string &input, bool replace_newlines_with_space = false);
 
+std::string replace_char(const std::string &input, char from_char, char to_char);
+
+std::string replace_substring(const std::string &input, const std::string &from_substr, const std::string &to_substr);
+
 } // namespace text_utils
 
 #endif // TEXT_UTILS_HPP

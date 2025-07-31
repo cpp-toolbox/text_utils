@@ -129,5 +129,27 @@ std::string join_multiline(const std::string &input, bool replace_newlines_with_
 
     return result;
 }
+std::string replace_char(const std::string &input, char from_char, char to_char) {
+    std::string result = input;
+    std::replace(result.begin(), result.end(), from_char, to_char);
+    return result;
+}
+
+#include <string>
+
+// Replaces all occurrences of `from_substr` with `to_substr` in `input`
+std::string replace_substring(const std::string &input, const std::string &from_substr, const std::string &to_substr) {
+    if (from_substr.empty())
+        return input; // avoid infinite loop
+    std::string result = input;
+    size_t pos = 0;
+
+    while ((pos = result.find(from_substr, pos)) != std::string::npos) {
+        result.replace(pos, from_substr.length(), to_substr);
+        pos += to_substr.length(); // move past the new substring
+    }
+
+    return result;
+}
 
 } // namespace text_utils
