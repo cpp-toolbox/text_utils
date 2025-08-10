@@ -152,4 +152,52 @@ std::string replace_substring(const std::string &input, const std::string &from_
     return result;
 }
 
+bool starts_with(const std::string &str, const std::string &prefix) {
+    return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+
+bool contains(const std::string &str, const std::string &substr) { return str.find(substr) != std::string::npos; }
+
+std::string get_substring(const std::string &input, size_t start, size_t end) {
+    if (start >= end || end > input.size()) {
+        return ""; // or throw std::out_of_range if you want stricter handling
+    }
+    return input.substr(start, end - start);
+}
+
+std::string remove_newlines(const std::string &input) {
+    std::string result;
+    result.reserve(input.size());
+
+    for (char c : input) {
+        if (c != '\n' && c != '\r') {
+            result += c;
+        }
+    }
+
+    return result;
+}
+
+std::string collapse_whitespace(const std::string &input) {
+    std::string result;
+    result.reserve(input.size());
+
+    bool in_whitespace = false;
+    for (char c : input) {
+        if (std::isspace(static_cast<unsigned char>(c))) {
+            if (!in_whitespace) {
+                // Add a single space for the first whitespace in a run
+                result += ' ';
+                in_whitespace = true;
+            }
+            // else skip additional whitespace chars
+        } else {
+            result += c;
+            in_whitespace = false;
+        }
+    }
+
+    return result;
+}
+
 } // namespace text_utils
