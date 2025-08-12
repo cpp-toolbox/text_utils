@@ -8,7 +8,60 @@
 
 namespace text_utils {
 
-inline const std::string tab = "    ";
+inline const std::string double_quote = "\"";
+inline const std::string single_quote = "'";
+inline const std::string newline = "\n";
+inline const std::string tab = "\t";
+inline const std::string space = " ";
+inline const std::string empty = "";
+inline const std::string comma = ",";
+inline const std::string period = ".";
+inline const std::string colon = ":";
+inline const std::string semicolon = ";";
+inline const std::string dash = "-";
+inline const std::string underscore = "_";
+inline const std::string slash = "/";
+inline const std::string backslash = "\\";
+inline const std::string pipe = "|";
+inline const std::string ampersand = "&";
+inline const std::string at_sign = "@";
+inline const std::string hash = "#";
+inline const std::string dollar = "$";
+inline const std::string percent = "%";
+inline const std::string caret = "^";
+inline const std::string asterisk = "*";
+inline const std::string plus = "+";
+inline const std::string equals = "=";
+inline const std::string question_mark = "?";
+inline const std::string exclamation_mark = "!";
+inline const std::string left_paren = "(";
+inline const std::string right_paren = ")";
+inline const std::string left_bracket = "[";
+inline const std::string right_bracket = "]";
+inline const std::string left_brace = "{";
+inline const std::string right_brace = "}";
+inline const std::string less_than = "<";
+inline const std::string greater_than = ">";
+inline const std::string newline_windows = "\r\n";
+inline const std::string carriage_return = "\r";
+
+class StringAccumulator {
+  public:
+    template <typename... Args> void add(Args &&...args) {
+        std::ostringstream oss;
+        (oss << ... << args); // fold expression to stream all args
+        data_ += oss.str();
+    }
+
+    void clear() { data_.clear(); }
+
+    std::string str() const { return data_; }
+
+    size_t size() const { return data_.size(); }
+
+  private:
+    std::string data_;
+};
 
 class MultilineStringAccumulator {
   public:
@@ -122,6 +175,10 @@ std::string get_substring(const std::string &input, size_t start, size_t end);
 std::string remove_newlines(const std::string &input);
 
 std::string collapse_whitespace(const std::string &input);
+
+std::string replace_literal_newlines_with_real(const std::string &input);
+
+std::string surround(const std::string &str, const std::string &left, const std::string &right = "");
 
 } // namespace text_utils
 

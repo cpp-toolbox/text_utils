@@ -200,4 +200,23 @@ std::string collapse_whitespace(const std::string &input) {
     return result;
 }
 
+std::string replace_literal_newlines_with_real(const std::string &input) {
+    std::string output;
+    output.reserve(input.size());
+
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (input[i] == '\\' && i + 1 < input.size() && input[i + 1] == 'n') {
+            output.push_back('\n'); // real newline
+            ++i;                    // skip 'n'
+        } else {
+            output.push_back(input[i]);
+        }
+    }
+    return output;
+}
+
+std::string surround(const std::string &str, const std::string &left, const std::string &right ) {
+    return left + str + (right.empty() ? left : right);
+}
+
 } // namespace text_utils
