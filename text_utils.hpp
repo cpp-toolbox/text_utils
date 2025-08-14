@@ -150,35 +150,32 @@ class MultilineStringAccumulator {
 std::string abbreviate_snake_case(const std::string &input);
 
 bool is_integer(const std::string &str);
-
 bool is_rational(const std::string &str);
 
 std::string add_newlines_to_long_string(const std::string &text, size_t max_chars_per_line = 25);
 
+std::vector<std::string> split(const std::string &str, const std::string &delimiter);
 std::string join(const std::vector<std::string> &elements, const std::string &separator);
 std::string trim(const std::string &s);
+std::string surround(const std::string &str, const std::string &left, const std::string &right = "");
 
-std::string camel_to_snake_case(const std::string &input);
+std::string pascal_to_snake_case(const std::string &input);
+std::string snake_to_pascal_case(const std::string &input);
 
 std::string join_multiline(const std::string &input, bool replace_newlines_with_space = false);
 
 std::string replace_char(const std::string &input, char from_char, char to_char);
-
 std::string replace_substring(const std::string &input, const std::string &from_substr, const std::string &to_substr);
 
 bool starts_with(const std::string &str, const std::string &prefix);
-
 bool contains(const std::string &str, const std::string &substr);
 
 std::string get_substring(const std::string &input, size_t start, size_t end);
 
 std::string remove_newlines(const std::string &input);
-
 std::string collapse_whitespace(const std::string &input);
-
 std::string replace_literal_newlines_with_real(const std::string &input);
-
-std::string surround(const std::string &str, const std::string &left, const std::string &right = "");
+std::string indent(const std::string &text, int indent_level, int spaces_per_indent = 4);
 
 } // namespace text_utils
 

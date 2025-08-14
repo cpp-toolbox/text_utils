@@ -60,6 +60,18 @@ std::string add_newlines_to_long_string(const std::string &text, size_t max_char
     return formatted.str();
 }
 
+std::vector<std::string> split(const std::string &str, const std::string &delimiter) {
+    std::vector<std::string> result;
+    size_t pos = 0;
+    size_t delim_pos;
+    while ((delim_pos = str.find(delimiter, pos)) != std::string::npos) {
+        result.push_back(str.substr(pos, delim_pos - pos));
+        pos = delim_pos + delimiter.length();
+    }
+    result.push_back(str.substr(pos)); // add the remaining part
+    return result;
+}
+
 std::string join(const std::vector<std::string> &elements, const std::string &separator) {
     std::ostringstream os;
     for (size_t i = 0; i < elements.size(); ++i) {
@@ -79,23 +91,35 @@ std::string trim(const std::string &s) {
     return s.substr(first, last - first + 1);
 }
 
-std::string camel_to_snake_case(const std::string &input) {
-    std::string result;
+std::string pascal_to_snake_case(const std::string &input) {
+    std::vector<std::string> parts;
+    std::string current;
 
-    for (size_t i = 0; i < input.size(); ++i) {
-        char c = input[i];
-
+    for (char c : input) {
         if (std::isupper(c)) {
-            if (i != 0) {
-                result += '_';
+            if (!current.empty()) {
+                parts.push_back(current);
             }
-            result += std::tolower(c);
+            current = std::string(1, std::tolower(c));
         } else {
-            result += c;
+            current += c;
         }
     }
+    if (!current.empty()) {
+        parts.push_back(current);
+    }
 
-    return result;
+    return join(parts, "_");
+}
+
+std::string snake_to_pascal_case(const std::string &input) {
+    std::vector<std::string> parts = split(input, "_");
+    for (std::string &part : parts) {
+        if (!part.empty()) {
+            part[0] = std::toupper(part[0]);
+        }
+    }
+    return join(parts, "");
 }
 
 std::string join_multiline(const std::string &input, bool replace_newlines_with_space) {
@@ -215,7 +239,20 @@ std::string replace_literal_newlines_with_real(const std::string &input) {
     return output;
 }
 
-std::string surround(const std::string &str, const std::string &left, const std::string &right ) {
+std::string indent(const std::string &text, int indent_level, int spaces_per_indent) {
+    std::istringstream iss(text);
+    std::ostringstream oss;
+    std::string line;
+    std::string indent(indent_level * spaces_per_indent, ' ');
+
+    while (std::getline(iss, line)) {
+        oss << indent << line << '\n';
+    }
+
+    return oss.str();
+}
+
+std::string surround(const std::string &str, const std::string &left, const std::string &right) {
     return left + str + (right.empty() ? left : right);
 }
 
