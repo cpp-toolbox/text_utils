@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 #include <stdexcept>
 
@@ -176,6 +177,8 @@ std::string remove_newlines(const std::string &input);
 std::string collapse_whitespace(const std::string &input);
 std::string replace_literal_newlines_with_real(const std::string &input);
 std::string indent(const std::string &text, int indent_level, int spaces_per_indent = 4);
+
+std::unordered_map<std::string, std::string> map_words_to_abbreviations(const std::vector<std::string> &words);
 
 } // namespace text_utils
 

@@ -256,4 +256,58 @@ std::string surround(const std::string &str, const std::string &left, const std:
     return left + str + (right.empty() ? left : right);
 }
 
+std::string generate_abbreviation(const std::string &snake_case_name) {
+    // replace all delimiters with a single common one (e.g., "_")
+    std::string normalized = snake_case_name;
+    for (char &c : normalized) {
+        if (c == '/' || c == '\\' || c == '_' || c == '-' || c == '.') {
+            c = '_';
+        }
+    }
+
+    // Now split on "_"
+    std::vector<std::string> parts = split(normalized, "_");
+
+    std::string abbreviation;
+    for (const auto &part : parts) {
+        if (!part.empty()) {
+            abbreviation += part[0];
+        }
+    }
+
+    return abbreviation;
+}
+
+std::string generate_unique_abbreviation(std::unordered_map<std::string, std::string> &current_abbreviation_map,
+                                         const std::string &word_to_abbreviate) {
+
+    std::string abbreviation = generate_abbreviation(word_to_abbreviate);
+
+    if (auto it = current_abbreviation_map.find(abbreviation); it != current_abbreviation_map.end()) {
+        if (it->second != word_to_abbreviate) {
+            int suffix = 1;
+            std::string original_abbreviation = abbreviation;
+            while (current_abbreviation_map.find(abbreviation) != current_abbreviation_map.end() &&
+                   current_abbreviation_map[abbreviation] != word_to_abbreviate) {
+                abbreviation = original_abbreviation + std::to_string(suffix++);
+            }
+        }
+    }
+
+    current_abbreviation_map[abbreviation] = word_to_abbreviate;
+    return abbreviation;
+}
+
+std::unordered_map<std::string, std::string> map_words_to_abbreviations(const std::vector<std::string> &words) {
+    std::unordered_map<std::string, std::string> abbreviation_to_word;
+    std::unordered_map<std::string, std::string> word_to_abbreviation;
+
+    for (const auto &word : words) {
+        std::string abbr = generate_unique_abbreviation(abbreviation_to_word, word);
+        word_to_abbreviation[word] = abbr;
+    }
+
+    return word_to_abbreviation;
+}
+
 } // namespace text_utils
