@@ -72,6 +72,20 @@ std::vector<std::string> split(const std::string &str, const std::string &delimi
     return result;
 }
 
+std::vector<std::string> split_once_from_right(const std::string &str, const std::string &delimiter) {
+    std::vector<std::string> result;
+    size_t delim_pos = str.rfind(delimiter);
+
+    if (delim_pos == std::string::npos) {
+        result.push_back(str);
+    } else {
+        result.push_back(str.substr(0, delim_pos));
+        result.push_back(str.substr(delim_pos + delimiter.length()));
+    }
+
+    return result;
+}
+
 std::string join(const std::vector<std::string> &elements, const std::string &separator) {
     std::ostringstream os;
     for (size_t i = 0; i < elements.size(); ++i) {

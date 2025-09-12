@@ -156,9 +156,12 @@ bool is_rational(const std::string &str);
 std::string add_newlines_to_long_string(const std::string &text, size_t max_chars_per_line = 25);
 
 std::vector<std::string> split(const std::string &str, const std::string &delimiter);
+std::vector<std::string> split_once_from_right(const std::string &str, const std::string &delimiter);
 std::string join(const std::vector<std::string> &elements, const std::string &separator);
 std::string trim(const std::string &s);
 std::string surround(const std::string &str, const std::string &left, const std::string &right = "");
+
+template <typename... Args> std::string concat(const Args &...args) { return (std::string(args) + ...); }
 
 std::string pascal_to_snake_case(const std::string &input);
 std::string snake_to_pascal_case(const std::string &input);
