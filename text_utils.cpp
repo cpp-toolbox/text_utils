@@ -159,6 +159,17 @@ std::string replace_char(const std::string &input, char from_char, char to_char)
     return result;
 }
 
+std::string replace_chars(const std::string &input, const std::unordered_map<char, char> &mapping) {
+    std::string result = input;
+    for (char &c : result) {
+        auto it = mapping.find(c);
+        if (it != mapping.end()) {
+            c = it->second;
+        }
+    }
+    return result;
+}
+
 #include <string>
 
 // Replaces all occurrences of `from_substr` with `to_substr` in `input`

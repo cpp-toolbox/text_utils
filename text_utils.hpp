@@ -166,6 +166,7 @@ std::string snake_to_pascal_case(const std::string &input);
 std::string join_multiline(const std::string &input, bool replace_newlines_with_space = false);
 
 std::string replace_char(const std::string &input, char from_char, char to_char);
+std::string replace_chars(const std::string &input, const std::unordered_map<char, char> &mapping);
 std::string replace_substring(const std::string &input, const std::string &from_substr, const std::string &to_substr);
 
 bool starts_with(const std::string &str, const std::string &prefix);
