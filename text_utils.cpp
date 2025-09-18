@@ -335,9 +335,6 @@ std::unordered_map<std::string, std::string> map_words_to_abbreviations(const st
     return word_to_abbreviation;
 }
 
-// --- Parser: convert string into tree ---
-Node parse_block(const std::string &s, size_t &pos);
-
 std::string parse_token(const std::string &s, size_t &pos) {
     std::string tok;
     while (pos < s.size() && s[pos] != '=' && s[pos] != ',' && s[pos] != '{' && s[pos] != '}') {
@@ -351,25 +348,47 @@ Node parse_block(const std::string &s, size_t &pos) {
     block.is_block = true;
     if (s[pos] == '{')
         pos++; // consume '{'
+
     while (pos < s.size() && s[pos] != '}') {
         Node child;
-        child.key = parse_token(s, pos);
-        if (pos < s.size() && s[pos] == '=') {
-            pos++; // consume '='
+
+        // peek ahead to decide if this is "key=value" or just a value
+        size_t lookahead = pos;
+        std::string tok = parse_token(s, lookahead);
+
+        if (lookahead < s.size() && s[lookahead] == '=') {
+            // --- key=value or key={...} ---
+            std::string key = tok;
+            pos = lookahead + 1; // skip '='
+
             if (pos < s.size() && s[pos] == '{') {
-                child = parse_block(s, pos);
-                child.key = trim(child.key.empty() ? "" : child.key);
+                Node inner = parse_block(s, pos);
+                inner.key = trim(key); // preserve key!
+                child = std::move(inner);
             } else {
+                child.key = key;
                 child.value = parse_token(s, pos);
                 child.is_block = false;
             }
+        } else if (pos < s.size() && s[pos] == '{') {
+            // --- nested block without key (e.g. vector/tuple) ---
+            child = parse_block(s, pos);
+            child.key = ""; // anonymous
+        } else {
+            // --- plain value (like vector element) ---
+            child.value = parse_token(s, pos);
+            child.is_block = false;
         }
+
         block.children.push_back(child);
+
         if (pos < s.size() && s[pos] == ',')
-            pos++;
+            pos++; // consume comma
     }
+
     if (pos < s.size() && s[pos] == '}')
         pos++; // consume '}'
+
     return block;
 }
 
@@ -424,12 +443,20 @@ static std::vector<std::string> build_buffer(const Node &node) {
 
     std::vector<std::string> buf(height, std::string(width, ' '));
 
-    // top border
-    buf[0].assign(width, '=');
-    if (title_len > 0) {
-        size_t start = (width > title_len) ? (width - title_len) / 2 : 0;
-        for (size_t i = 0; i < title_len && start + i < width; ++i)
-            buf[0][start + i] = node.key[i];
+    // top border with baked-in key
+    if (!node.key.empty()) {
+        std::string decorated = " " + node.key + " ";
+        size_t left_eq = (width > decorated.size()) ? (width - decorated.size()) / 2 : 0;
+
+        // fill with '='
+        buf[0].assign(width, '=');
+
+        // overwrite the middle with the decorated text
+        for (size_t i = 0; i < decorated.size() && left_eq + i < width; ++i) {
+            buf[0][left_eq + i] = decorated[i];
+        }
+    } else {
+        buf[0].assign(width, '=');
     }
 
     // bottom border
