@@ -184,6 +184,86 @@ std::string indent(const std::string &text, int indent_level, int spaces_per_ind
 
 std::unordered_map<std::string, std::string> map_words_to_abbreviations(const std::vector<std::string> &words);
 
+/**
+ * @brief Node in the parsed representation of a nested brace string.
+ */
+struct Node {
+    std::string key;
+    std::string value;
+    std::vector<Node> children;
+    bool is_block = false;
+};
+
+/**
+ * @brief Parse a `{...}` block from a string into a Node tree.
+ *
+ * @param s   Input string containing the data.
+ * @param pos Position index (will be advanced as parsing progresses).
+ * @return Parsed Node representing the block.
+ */
+Node parse_block(const std::string &s, size_t &pos);
+
+/**
+ * @brief Parse a token (identifier, number, etc.) from the input string.
+ *
+ * @param s   Input string.
+ * @param pos Position index (will be advanced).
+ * @return Parsed token as a string.
+ */
+std::string parse_token(const std::string &s, size_t &pos);
+
+/**
+ * @brief Recursively build a 2D buffer of the formatted representation.
+ *
+ * @param node Root node to format.
+ * @return Vector of strings, one per line of the formatted box.
+ */
+static std::vector<std::string> build_buffer(const Node &node);
+
+/**
+ * @brief Recursively formats nested key-value data into boxed, pretty-printed
+ * sections.
+ *
+ * The input string must follow this format:
+ * - Each entry is `key=value`.
+ * - Values may either be scalars (numbers, identifiers, strings) or nested
+ *   blocks `{...}`.
+ * - Entries inside `{}` are separated by commas `,`.
+ *
+ * Example input:
+ * @code
+ * {header={type=PacketType::KEYBOARD_MOUSE_UPDATE,
+ * size_of_data_without_header=6}, id=32, mku={fire_pressed=1,
+ * forward_pressed=0}}
+ * @endcode
+ *
+ * Example output:
+ * @code
+ * ========================================================
+ * |                                                     |
+ * |   =====================header=====================  |
+ * |   |                                               | |
+ * |   |   type = PacketType::KEYBOARD_MOUSE_UPDATE    | |
+ * |   |                                               | |
+ * |   |   size_of_data_without_header = 6             | |
+ * |   |                                               | |
+ * |   ================================================  |
+ * |                                                     |
+ * |   id = 32                                           |
+ * |                                                     |
+ * |   ============mku============                       |
+ * |   |                             |                   |
+ * |   |   fire_pressed = 1          |                   |
+ * |   |                             |                   |
+ * |   |   forward_pressed = 0       |                   |
+ * |   |                             |                   |
+ * |   ===============================                   |
+ * |                                                     |
+ * ========================================================
+ * @endcode
+ */
+std::string format_nested_brace_string_recursive(const std::string &input);
+
 } // namespace text_utils
 
 #endif // TEXT_UTILS_HPP

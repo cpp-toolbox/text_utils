@@ -335,4 +335,149 @@ std::unordered_map<std::string, std::string> map_words_to_abbreviations(const st
     return word_to_abbreviation;
 }
 
+// --- Parser: convert string into tree ---
+Node parse_block(const std::string &s, size_t &pos);
+
+std::string parse_token(const std::string &s, size_t &pos) {
+    std::string tok;
+    while (pos < s.size() && s[pos] != '=' && s[pos] != ',' && s[pos] != '{' && s[pos] != '}') {
+        tok.push_back(s[pos++]);
+    }
+    return trim(tok);
+}
+
+Node parse_block(const std::string &s, size_t &pos) {
+    Node block;
+    block.is_block = true;
+    if (s[pos] == '{')
+        pos++; // consume '{'
+    while (pos < s.size() && s[pos] != '}') {
+        Node child;
+        child.key = parse_token(s, pos);
+        if (pos < s.size() && s[pos] == '=') {
+            pos++; // consume '='
+            if (pos < s.size() && s[pos] == '{') {
+                child = parse_block(s, pos);
+                child.key = trim(child.key.empty() ? "" : child.key);
+            } else {
+                child.value = parse_token(s, pos);
+                child.is_block = false;
+            }
+        }
+        block.children.push_back(child);
+        if (pos < s.size() && s[pos] == ',')
+            pos++;
+    }
+    if (pos < s.size() && s[pos] == '}')
+        pos++; // consume '}'
+    return block;
+}
+
+// --- Recursive formatter ---
+static std::vector<std::string> build_buffer(const Node &node) {
+    const size_t H_PAD = 3;
+    const size_t V_PAD = 1;
+    const size_t MIN_INNER = 8;
+
+    struct CI {
+        bool is_block;
+        std::vector<std::string> buf;
+        std::string text;
+        size_t w;
+        size_t h;
+    };
+    std::vector<CI> infos;
+    size_t max_child_w = 0;
+    size_t sum_child_h = 0;
+
+    for (const auto &ch : node.children) {
+        if (ch.is_block) {
+            auto cb = build_buffer(ch);
+            size_t cw = cb.empty() ? 0 : cb[0].size();
+            infos.push_back(CI{true, cb, "", cw, cb.size()});
+            max_child_w = std::max(max_child_w, cw);
+            sum_child_h += cb.size();
+        } else {
+            std::string text;
+            if (!ch.key.empty()) {
+                if (!ch.value.empty())
+                    text = ch.key + " = " + ch.value;
+                else
+                    text = ch.key;
+            } else {
+                text = ch.value;
+            }
+            size_t w = text.size();
+            infos.push_back(CI{false, {}, text, w, 1});
+            max_child_w = std::max(max_child_w, w);
+            sum_child_h += 1;
+        }
+    }
+
+    size_t title_len = trim(node.key).size();
+    size_t inner_content_width = std::max({MIN_INNER, title_len, max_child_w});
+    inner_content_width += 2 * H_PAD;
+
+    size_t width = inner_content_width + 2;
+    size_t n = infos.size();
+    size_t height = 1 + (n + 1) * V_PAD + sum_child_h + 1;
+
+    std::vector<std::string> buf(height, std::string(width, ' '));
+
+    // top border
+    buf[0].assign(width, '=');
+    if (title_len > 0) {
+        size_t start = (width > title_len) ? (width - title_len) / 2 : 0;
+        for (size_t i = 0; i < title_len && start + i < width; ++i)
+            buf[0][start + i] = node.key[i];
+    }
+
+    // bottom border
+    buf[height - 1].assign(width, '=');
+
+    // vertical walls
+    for (size_t r = 1; r + 1 < height; ++r) {
+        buf[r][0] = '|';
+        buf[r][width - 1] = '|';
+    }
+
+    // place children, left-justified
+    size_t y = 1 + V_PAD;
+    size_t inner_start = 1 + H_PAD;
+    for (const auto &ci : infos) {
+        size_t x = inner_start;
+
+        if (ci.is_block) {
+            for (size_t r = 0; r < ci.h; ++r) {
+                const std::string &src = ci.buf[r];
+                for (size_t c = 0; c < src.size() && x + c < width - 1; ++c) {
+                    if (y + r < height - 1)
+                        buf[y + r][x + c] = src[c];
+                }
+            }
+        } else {
+            for (size_t c = 0; c < ci.text.size() && x + c < width - 1; ++c) {
+                if (y < height - 1)
+                    buf[y][x + c] = ci.text[c];
+            }
+        }
+
+        y += ci.h;
+        y += V_PAD;
+    }
+
+    return buf;
+}
+
+std::string format_nested_brace_string_recursive(const std::string &input) {
+    size_t pos = 0;
+    Node root = parse_block(input, pos);
+    auto buf = build_buffer(root);
+
+    std::ostringstream out;
+    for (auto &l : buf)
+        out << l << "\n";
+    return out.str();
+}
+
 } // namespace text_utils
