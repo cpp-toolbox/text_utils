@@ -393,7 +393,7 @@ Node parse_block(const std::string &s, size_t &pos) {
 }
 
 // --- Recursive formatter ---
-static std::vector<std::string> build_buffer(const Node &node) {
+std::vector<std::string> build_buffer(const Node &node) {
     const size_t H_PAD = 3;
     const size_t V_PAD = 1;
     const size_t MIN_INNER = 8;

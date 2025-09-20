@@ -218,7 +218,7 @@ std::string parse_token(const std::string &s, size_t &pos);
  * @param node Root node to format.
  * @return Vector of strings, one per line of the formatted box.
  */
-static std::vector<std::string> build_buffer(const Node &node);
+std::vector<std::string> build_buffer(const Node &node);
 
 /**
  * @brief Recursively formats nested key-value data into boxed, pretty-printed
