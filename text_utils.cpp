@@ -1,24 +1,34 @@
 #include "text_utils.hpp"
+#include <iostream>
 #include <regex>
 
 #include <string>
 #include <sstream>
+#include <unordered_set>
 
 namespace text_utils {
 
-std::string remove_consecutive_duplicates(const std::string &input) {
+std::string remove_consecutive_duplicates(const std::string &input, const std::string &dedup_chars) {
     if (input.empty())
         return "";
 
+    std::unordered_set<char> dedup_set(dedup_chars.begin(), dedup_chars.end());
+
     std::string result;
-    result.reserve(input.size()); // reserve space to avoid reallocations
+    result.reserve(input.size());
     result.push_back(input[0]);
 
     for (size_t i = 1; i < input.size(); ++i) {
-        if (input[i] != input[i - 1]) {
-            result.push_back(input[i]);
+        char current = input[i];
+        char prev = input[i - 1];
+
+        bool should_dedup = dedup_chars.empty() || dedup_set.count(current) > 0;
+
+        if (!(should_dedup && current == prev)) {
+            result.push_back(current);
         }
     }
+
     return result;
 }
 

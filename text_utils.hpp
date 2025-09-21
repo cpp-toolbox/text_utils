@@ -148,7 +148,7 @@ class MultilineStringAccumulator {
     size_t indent_size_;
 };
 
-std::string remove_consecutive_duplicates(const std::string &input);
+std::string remove_consecutive_duplicates(const std::string &input, const std::string &dedup_chars = "");
 
 std::string abbreviate_snake_case(const std::string &input);
 
