@@ -6,6 +6,22 @@
 
 namespace text_utils {
 
+std::string remove_consecutive_duplicates(const std::string &input) {
+    if (input.empty())
+        return "";
+
+    std::string result;
+    result.reserve(input.size()); // reserve space to avoid reallocations
+    result.push_back(input[0]);
+
+    for (size_t i = 1; i < input.size(); ++i) {
+        if (input[i] != input[i - 1]) {
+            result.push_back(input[i]);
+        }
+    }
+    return result;
+}
+
 std::string abbreviate_snake_case(const std::string &input) {
     std::stringstream abbrev;
     std::stringstream word_stream(input);

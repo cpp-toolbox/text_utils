@@ -148,6 +148,8 @@ class MultilineStringAccumulator {
     size_t indent_size_;
 };
 
+std::string remove_consecutive_duplicates(const std::string &input);
+
 std::string abbreviate_snake_case(const std::string &input);
 
 bool is_integer(const std::string &str);
@@ -161,7 +163,7 @@ std::string join(const std::vector<std::string> &elements, const std::string &se
 std::string trim(const std::string &s);
 std::string surround(const std::string &str, const std::string &left, const std::string &right = "");
 
-template <typename... Args> std::string concat(const Args &...args) { return (std::string(args) + ...); }
+// template <typename... Args> std::string concat(const Args &...args) { return (std::string(args) + ...); }
 
 std::string pascal_to_snake_case(const std::string &input);
 std::string snake_to_pascal_case(const std::string &input);
