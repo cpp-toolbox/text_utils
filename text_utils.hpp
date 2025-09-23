@@ -46,6 +46,9 @@ inline const std::string greater_than = ">";
 inline const std::string newline_windows = "\r\n";
 inline const std::string carriage_return = "\r";
 
+inline const std::string natural_numbers = "ℕ";
+inline const std::string element_of = "∈";
+
 class StringAccumulator {
   public:
     template <typename... Args> void add(Args &&...args) {
