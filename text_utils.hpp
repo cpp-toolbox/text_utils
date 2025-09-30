@@ -108,7 +108,13 @@ class MultilineStringAccumulator {
      * @brief Add multiple lines with indentation applied.
      * @param multiline_str Input string with newlines.
      */
-    void add_multiline(const std::string &multiline_str);
+    void add_multiline(const std::string &multiline_str) {
+        std::istringstream iss(multiline_str);
+        std::string line;
+        while (std::getline(iss, line)) {
+            lines_.emplace_back(std::string(indent_level_ * indent_size_, ' ') + line);
+        }
+    }
 
     /**
      * @brief Insert a line at the given index.
@@ -116,7 +122,12 @@ class MultilineStringAccumulator {
      * @param line Text to insert.
      * @throws std::out_of_range if index is invalid.
      */
-    void insert_line(size_t index, const std::string &line);
+    void insert_line(size_t index, const std::string &line) {
+        if (index > lines_.size()) {
+            throw std::out_of_range("insert_line: index out of range");
+        }
+        lines_.insert(lines_.begin() + index, std::string(indent_level_ * indent_size_, ' ') + line);
+    }
 
     /**
      * @brief Insert all lines from another accumulator.
@@ -124,7 +135,12 @@ class MultilineStringAccumulator {
      * @param other Another accumulator containing lines.
      * @throws std::out_of_range if index is invalid.
      */
-    void insert_lines(size_t index, const MultilineStringAccumulator &other);
+    void insert_lines(size_t index, const MultilineStringAccumulator &other) {
+        if (index > lines_.size()) {
+            throw std::out_of_range("insert_lines: index out of range");
+        }
+        lines_.insert(lines_.begin() + index, other.lines_.begin(), other.lines_.end());
+    }
 
     /**
      * @brief Insert multiple lines from a string.
@@ -132,17 +148,45 @@ class MultilineStringAccumulator {
      * @param multiline_str String containing newlines.
      * @throws std::out_of_range if index is invalid.
      */
-    void insert_multiline(size_t index, const std::string &multiline_str);
+    void insert_multiline(size_t index, const std::string &multiline_str) {
+        if (index > lines_.size()) {
+            throw std::out_of_range("insert_multiline: index out of range");
+        }
+
+        std::istringstream iss(multiline_str);
+        std::string line;
+        std::vector<std::string> new_lines;
+
+        while (std::getline(iss, line)) {
+            new_lines.emplace_back(std::string(indent_level_ * indent_size_, ' ') + line);
+        }
+
+        lines_.insert(lines_.begin() + index, new_lines.begin(), new_lines.end());
+    }
 
     /**
      * @brief Remove a line at the given index.
      * @param index Position in the list of lines.
      * @throws std::out_of_range if index is invalid.
      */
-    void remove_line(size_t index);
+    void remove_line(size_t index) {
+        if (index >= lines_.size()) {
+            throw std::out_of_range("remove_line: index out of range");
+        }
+        lines_.erase(lines_.begin() + index);
+    }
 
     /// Get the accumulated text as a single string with newlines.
-    std::string str() const;
+    std::string str() const {
+        std::ostringstream oss;
+        for (size_t i = 0; i < lines_.size(); ++i) {
+            oss << lines_[i];
+            if (i + 1 < lines_.size()) {
+                oss << '\n';
+            }
+        }
+        return oss.str();
+    }
 
     /// Clear all stored lines.
     void clear() { lines_.clear(); }
