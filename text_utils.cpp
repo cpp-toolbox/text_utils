@@ -361,9 +361,19 @@ std::unordered_map<std::string, std::string> map_words_to_abbreviations(const st
     return word_to_abbreviation;
 }
 
+/**
+ * @brief Parses a single token from a string.
+ *
+ * A token is either a key, a value, or a standalone identifier.
+ *
+ * @param s The input string.
+ * @param pos The current parsing position (will be updated to after the token).
+ * @return std::string The parsed token.
+ */
 std::string parse_token(const std::string &s, size_t &pos) {
     std::string tok;
-    while (pos < s.size() && s[pos] != '=' && s[pos] != ',' && s[pos] != '{' && s[pos] != '}') {
+    while (pos < s.size() && s[pos] != '=' && s[pos] != ',' && s[pos] != '{' && s[pos] != '}' && s[pos] != '(' &&
+           s[pos] != ')') {
         tok.push_back(s[pos++]);
     }
     return trim(tok);
@@ -372,36 +382,37 @@ std::string parse_token(const std::string &s, size_t &pos) {
 Node parse_block(const std::string &s, size_t &pos) {
     Node block;
     block.is_block = true;
-    if (s[pos] == '{')
-        pos++; // consume '{'
 
-    while (pos < s.size() && s[pos] != '}') {
+    if (pos < s.size() && (s[pos] == '{' || s[pos] == '(')) {
+        block.block_type = s[pos];
+        pos++; // consume opening
+    }
+
+    char closing = (block.block_type == '{') ? '}' : ')';
+
+    while (pos < s.size() && s[pos] != closing) {
         Node child;
 
-        // peek ahead to decide if this is "key=value" or just a value
         size_t lookahead = pos;
         std::string tok = parse_token(s, lookahead);
 
         if (lookahead < s.size() && s[lookahead] == '=') {
-            // --- key=value or key={...} ---
             std::string key = tok;
-            pos = lookahead + 1; // skip '='
+            pos = lookahead + 1;
 
-            if (pos < s.size() && s[pos] == '{') {
+            if (pos < s.size() && (s[pos] == '{' || s[pos] == '(')) {
                 Node inner = parse_block(s, pos);
-                inner.key = trim(key); // preserve key!
+                inner.key = trim(key);
                 child = std::move(inner);
             } else {
                 child.key = key;
                 child.value = parse_token(s, pos);
                 child.is_block = false;
             }
-        } else if (pos < s.size() && s[pos] == '{') {
-            // --- nested block without key (e.g. vector/tuple) ---
+        } else if (pos < s.size() && (s[pos] == '{' || s[pos] == '(')) {
             child = parse_block(s, pos);
-            child.key = ""; // anonymous
+            child.key = "";
         } else {
-            // --- plain value (like vector element) ---
             child.value = parse_token(s, pos);
             child.is_block = false;
         }
@@ -412,14 +423,21 @@ Node parse_block(const std::string &s, size_t &pos) {
             pos++; // consume comma
     }
 
-    if (pos < s.size() && s[pos] == '}')
-        pos++; // consume '}'
+    if (pos < s.size() && s[pos] == closing)
+        pos++; // consume closing
 
     return block;
 }
 
-// --- Recursive formatter ---
-std::vector<std::string> build_buffer(const Node &node) {
+/**
+ * @brief Recursively formats a Node tree into a "box" representation.
+ *
+ * Each Node becomes a visual ASCII box with borders and optional title.
+ *
+ * @param node The Node to format.
+ * @return std::vector<std::string> The formatted box as a vector of strings.
+ */
+std::vector<std::string> format_as_boxes_from_node(const Node &node) {
     const size_t H_PAD = 3;
     const size_t V_PAD = 1;
     const size_t MIN_INNER = 8;
@@ -437,7 +455,7 @@ std::vector<std::string> build_buffer(const Node &node) {
 
     for (const auto &ch : node.children) {
         if (ch.is_block) {
-            auto cb = build_buffer(ch);
+            auto cb = format_as_boxes_from_node(ch);
             size_t cw = cb.empty() ? 0 : cb[0].size();
             infos.push_back(CI{true, cb, "", cw, cb.size()});
             max_child_w = std::max(max_child_w, cw);
@@ -522,14 +540,79 @@ std::vector<std::string> build_buffer(const Node &node) {
     return buf;
 }
 
-std::string format_nested_brace_string_recursive(const std::string &input) {
+std::string format_nested_braces_string_recursive_as_boxes(const std::string &input) {
     size_t pos = 0;
     Node root = parse_block(input, pos);
-    auto buf = build_buffer(root);
+    auto buf = format_as_boxes_from_node(root);
 
     std::ostringstream out;
     for (auto &l : buf)
         out << l << "\n";
+    return out.str();
+}
+
+/**
+ * @brief Generates a string of spaces for indentation.
+ *
+ * @param level The indentation level (number of 2-space increments).
+ * @return std::string The indentation string.
+ */
+std::string indent_str(int level) {
+    return std::string(level * 2, ' '); // 2 spaces per level
+}
+
+/**
+ * @brief Formats a Node tree into a human-readable string with newlines and indentation.
+ *
+ * Each block and key-value pair is placed on its own line, with indentation representing nesting.
+ *
+ * @param node The Node to format.
+ * @param indent Current indentation level (default 0).
+ * @return std::string The formatted string with newlines.
+ */
+std::string format_with_newlines_from_node(const Node &node, int indent) {
+    std::string ind = indent_str(indent);
+    std::string result;
+
+    if (node.is_block) {
+        char open_brace = node.block_type;
+        char close_brace = (open_brace == '{') ? '}' : ')';
+
+        if (!node.key.empty())
+            result += ind + node.key + " = ";
+
+        result += open_brace;
+        if (!node.children.empty())
+            result += "\n";
+
+        for (size_t i = 0; i < node.children.size(); ++i) {
+            result += format_with_newlines_from_node(node.children[i], indent + 1);
+            if (i + 1 < node.children.size())
+                result += ",\n";
+            else
+                result += "\n";
+        }
+
+        if (!node.children.empty())
+            result += ind;
+        result += close_brace;
+    } else {
+        if (!node.key.empty())
+            result += ind + node.key + " = ";
+        else
+            result += ind;
+        result += node.value;
+    }
+
+    return result;
+}
+
+std::string format_nested_braces_string_recursive_with_newlines(const std::string &input) {
+    size_t pos = 0;
+    Node root = parse_block(input, pos);
+
+    std::ostringstream out;
+    out << format_with_newlines_from_node(root, 0) << "\n"; // call the original function
     return out.str();
 }
 

@@ -332,17 +332,57 @@ std::string indent(const std::string &text, int indent_level, int spaces_per_ind
  */
 std::unordered_map<std::string, std::string> map_words_to_abbreviations(const std::vector<std::string> &words);
 
+// startfold formatting {"attr"= value, ... }
+
+/**
+ * @struct Node
+ * @brief Represents a node in a nested key-value or block structure.
+ *
+ * A Node can either be a simple key-value pair or a block containing child Nodes.
+ */
 struct Node {
-    std::string key;
-    std::string value;
-    std::vector<Node> children;
-    bool is_block = false;
+    std::string key;            /**< The key of this node (empty if not applicable). */
+    std::string value;          /**< The value of this node (empty if block). */
+    std::vector<Node> children; /**< Child nodes if this node is a block. */
+    bool is_block = false;      /**< True if this node represents a block. */
+    char block_type = '{';      /**< Type of block: '{' for {}, '(' for (). */
 };
 
+/**
+ * @brief Parses a block from a string starting at the given position.
+ *
+ * Recursively parses nested braces or parentheses into a Node tree.
+ *
+ * @param s The input string containing nested blocks.
+ * @param pos The current parsing position (will be updated to the end of the block).
+ * @return Node The parsed block node.
+ */
 Node parse_block(const std::string &s, size_t &pos);
-std::string parse_token(const std::string &s, size_t &pos);
-std::vector<std::string> build_buffer(const Node &node);
-std::string format_nested_brace_string_recursive(const std::string &input);
+
+/**
+ * @brief Formats a nested braces string into a visual ASCII box.
+ *
+ * Combines parsing and formatting into a single step.
+ *
+ * @param input The input string containing nested blocks.
+ * @return std::string The formatted ASCII box representation.
+ */
+std::string format_nested_braces_string_recursive_as_boxes(const std::string &input);
+
+/**
+ * @brief Convenience function to format a nested braces string with newlines and indentation.
+ *
+ * Combines parsing and formatting into a single step.
+ *
+ * @param input The input string containing nested blocks.
+ * @return std::string The formatted string with newlines and indentation.
+ *
+ * @todo doesn't deal with unordered maps very well
+ *
+ */
+std::string format_nested_braces_string_recursive_with_newlines(const std::string &input);
+
+// endfold
 
 } // namespace text_utils
 
